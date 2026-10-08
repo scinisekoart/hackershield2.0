@@ -78,6 +78,10 @@ web_modules/
 .next
 out
 
+# Project-specific local files
+.DS_Store
+leaderboard-data/
+
 # Nuxt.js build / generate output
 .nuxt
 dist
@@ -147,3 +151,11 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+=======
+node_modules/
+.env
+.env.*
+.DS_Store
+npm-debug.log*
+leaderboard-data/
+>>>>>>> 80dcf84 (Initial secure quiz app setup)
