@@ -151,11 +151,16 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
-=======
-node_modules/
+
+# Project-specific local files
+.DS_Store
+leaderboard-data/
+
+# dotenv environment variable files
 .env
 .env.*
-.DS_Store
+!.env.example
+
+# Runtime dependencies and logs
+node_modules/
 npm-debug.log*
-leaderboard-data/
->>>>>>> 80dcf84 (Initial secure quiz app setup)
