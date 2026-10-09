@@ -652,9 +652,11 @@
     </div>
 
     <script src="questions300.js"></script>
+    <script src="api-config.js"></script>
     <script>
         const MAX_NAME_LENGTH = 30;
-        const API_BASE_URL = window.QUIZ_API_BASE_URL || 'http://localhost:3001/api';
+        const isLocalDevelopment = ['localhost', '127.0.0.1'].includes(location.hostname) || location.protocol === 'file:';
+        const API_BASE_URL = window.QUIZ_API_BASE_URL || (isLocalDevelopment ? 'http://localhost:3001/api' : '');
 
         let currentQuestion = 0;
         let score = 0;
@@ -780,22 +782,24 @@
             const listContainer = document.getElementById('leaderboardList');
             const resultsBoard = document.getElementById('resultsLeaderboard');
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/leaderboard`, {
-                    method: 'GET',
-                    headers: {'Content-Type': 'application/json'}
-                });
+            if (API_BASE_URL) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/leaderboard`, {
+                        method: 'GET',
+                        headers: {'Content-Type': 'application/json'}
+                    });
 
-                if (!response.ok) {
-                    throw new Error('Backend leaderboard unavailable');
+                    if (!response.ok) {
+                        throw new Error('Backend leaderboard unavailable');
+                    }
+
+                    const data = await response.json();
+                    renderLeaderboard(listContainer, data.leaderboard || []);
+                    if (resultsBoard) renderLeaderboard(resultsBoard, data.leaderboard || []);
+                    return;
+                } catch (error) {
+                    console.warn('Using local leaderboard fallback:', error);
                 }
-
-                const data = await response.json();
-                renderLeaderboard(listContainer, data.leaderboard || []);
-                if (resultsBoard) renderLeaderboard(resultsBoard, data.leaderboard || []);
-                return;
-            } catch (error) {
-                console.warn('Using local leaderboard fallback:', error);
             }
 
             const fallbackLeaderboard = safeStorageGet('cyberQuiz300Leaderboard', []);
@@ -813,23 +817,25 @@
                 time: Number(timePerQ)
             };
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/score`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(payload)
-                });
+            if (API_BASE_URL) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/score`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(payload)
+                    });
 
-                if (!response.ok) {
-                    throw new Error('Score save failed');
-                }
+                    if (!response.ok) {
+                        throw new Error('Score save failed');
+                    }
 
-                const data = await response.json();
-                if (data && data.ok) {
-                    return data;
+                    const data = await response.json();
+                    if (data && data.ok) {
+                        return data;
+                    }
+                } catch (error) {
+                    console.warn('Backend save failed, storing locally instead:', error);
                 }
-            } catch (error) {
-                console.warn('Backend save failed, storing locally instead:', error);
             }
 
             const leaderboard = safeStorageGet('cyberQuiz300Leaderboard', []);

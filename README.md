@@ -33,26 +33,32 @@ The frontend can call the API using `window.QUIZ_API_BASE_URL` or by updating th
 
 ## GitHub deployment flow
 
-This project is set up for a common GitHub deployment pattern:
+The frontend is deployed to GitHub Pages. The Express API must be deployed separately.
 
-1. Push the repository to GitHub.
-2. Enable GitHub Pages for the frontend.
-3. Deploy the backend to a Node host such as Render.
-4. Add the required secrets in GitHub repository settings.
+### Deploy the backend to Render
 
-### Required GitHub secrets
+1. In Render, create a **New Web Service** and connect `scinisekoart/hackershield2.0`.
+2. Use the repository root, build command `npm ci`, and start command `npm start`.
+3. Add these environment variables to the Render service:
+   - `ALLOWED_ORIGINS=https://scinisekoart.github.io`
+   - `DATA_FILE=/var/data/leaderboard.json`
+4. For leaderboard data to survive service restarts and deploys, attach persistent storage mounted at `/var/data`. Check Render pricing before creating a disk; without persistent storage, the JSON leaderboard can be lost when the service restarts or redeploys.
+5. Deploy the service and copy its public URL, for example `https://your-service.onrender.com`.
+6. In Render service settings, create a deploy hook. If using the GitHub hook workflow below, turn off Render's automatic deploy on push to avoid duplicate deployments.
 
-For the Render deploy workflow, add:
+### Connect GitHub to Render and Pages
 
-- `RENDER_DEPLOY_HOOK_URL`
+In GitHub repository settings, open **Secrets and variables → Actions** and add:
 
-### Example workflow behavior
+- Repository variable `QUIZ_API_BASE_URL` with the complete API base URL, such as `https://your-service.onrender.com/api`.
+- Repository secret `RENDER_DEPLOY_HOOK_URL` with the Render deploy hook URL. Keep this secret private; do not put it in the frontend or share it publicly.
 
-- `.github/workflows/frontend-pages.yml` deploys the static frontend to GitHub Pages.
-- `.github/workflows/backend-render.yml` triggers a Render deploy when code is pushed to `main`.
+The Pages workflow builds `api-config.js` from `QUIZ_API_BASE_URL` each time it deploys. Push a commit to `main` (or rerun the Pages workflow) after adding/changing that variable. The Render workflow uses the deploy-hook secret to trigger backend deploys; if it is unset, the workflow skips that step rather than failing.
 
-### Important
+### Local development
 
-- Keep `.env` local and do not commit it.
-- Do not store production secrets in the repository.
-- Set the production backend URL in the frontend before public deployment.
+Copy `.env.example` to `.env` for local backend settings, then run `npm ci` and `npm start`. `.env` is ignored by Git and should never be committed.
+
+### Public leaderboard limitation
+
+The API validates score payloads but does not prove that a score was earned honestly; a public client can submit fabricated scores. Do not use this leaderboard for prizes, private information, or other high-trust decisions without server-side answer validation and abuse controls.

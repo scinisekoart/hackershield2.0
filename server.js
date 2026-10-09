@@ -8,7 +8,7 @@ require('dotenv').config();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
-const DATA_FILE = path.join(__dirname, 'data', 'leaderboard.json');
+const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'data', 'leaderboard.json');
 const defaultAllowedOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000', 'file://'];
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || defaultAllowedOrigins.join(','))
   .split(',')

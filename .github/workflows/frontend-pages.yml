@@ -27,10 +27,20 @@ jobs:
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 
+      - name: Configure production API URL
+        env:
+          QUIZ_API_BASE_URL: ${{ vars.QUIZ_API_BASE_URL }}
+        run: node -e "require('node:fs').writeFileSync('api-config.js', 'window.QUIZ_API_BASE_URL = ' + JSON.stringify(process.env.QUIZ_API_BASE_URL || '') + ';\\n')"
+
+      - name: Prepare static site
+        run: |
+          mkdir _site
+          cp index.html CS50_quiz_300.html questions300.js api-config.js _site/
+
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
